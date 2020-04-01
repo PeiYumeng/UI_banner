@@ -16,13 +16,15 @@ var $ban = (function(){
             flag = false,
             index_all = 1;
     //左右效果
-    $(cfg.container).mouseover(function(){
+    $(cfg.container).mouseenter(function(){
         $('#left').css('opacity',0.5);
         $('#right').css('opacity',0.5);
+        clearInterval(timer)
     })
-    $(cfg.container).mouseout(function(){
+    $(cfg.container).mouseleave(function(){
         $('#left').css('opacity',0);
         $('#right').css('opacity',0);
+        move();
     })
     function show(conf){
         //扩展cfg
@@ -40,24 +42,40 @@ var $ban = (function(){
         //nav点击事件
         $("#navs").children().each(function(index){
             $(this).click(function(){
-                index_all = index
-                console.log(index_all,index)
-                if(index_all < index){//点的前面的序号
+                // console.log(index_all,index+1)
+                if(index_all==6){
+                    index_all=1;
+                }
+                if(index_all>index+1){
+                    // console.log(index_all)
+                    clearInterval(timer);
+                    console.log(index)
+                    index_all = index+2;
                     pre();
-                    console.log(index_all)
+                    index_all--;
                 }else{
-                    move()
+                    clearInterval(timer);
+                    index_all = index;
+                    next();
+                    index_all++;
                 }
             })
         })
         //左按钮点击事件
         $('#left').click(function(){
-            index_all = index_all-2;
-            move()
+            if(flag) return;
+            clearInterval(timer);
+            pre();
+            index_all --;
+            flag = true;
         })
         //右按钮点击事件
         $('#right').click(function(){
-            move()
+            if(flag) return;
+            clearInterval(timer);
+            next();
+            index_all++;
+            flag = true;
         })
         move()
     }
@@ -65,46 +83,63 @@ var $ban = (function(){
         $("#navs").children().removeClass('active')
         $("#navs").children().eq(i).addClass('active')
     }
-    function move(){//向右
-        clearInterval(timer);
+    function action(){
+        if(index_all>cfg.page){
+            active(1)
+        }
+        if(index_all == 5){
+            active(0)
+        }else{
+            active(index_all)
+        }
+    }
+    function move(){//向右轮播
+        clearInterval(timer)
         timer = setInterval(function(){
-            //navs变红
             if(index_all>cfg.page){
                 index_all = 1;
                 $("#slider").css('left','-1200px');
-                active(1)
             }
-            if(index_all == 5){
-                active(0)
-            }else{
-                active(index_all)
-            }
+            action();
             //变一页
+            // console.log(index_all)
             var width = -wid*(index_all+1);//-2400
             $('#slider').animate({'left':width+'px'},500)
             index_all++
         },cfg.num)
     }
-    function pre(){//向左
-        if(flag)return
-        if(!flag){
-            clearInterval(timer);
-            timer = setInterval(function(){       
-                if(index_all<1){
-                    index_all=5
-                    $("#slider").css('left',-wid*cfg.page+'px');
-                    active(3)
-                }else{
-                    active(index_all-2)
-                }
-                var width = -wid*(index_all-1);//-2400
-                $('#slider').animate({'left':width+'px'},()=>{
-                    500;
-                    flag = false;
-                })
-                index_all--;
-            },cfg.num)
+    function next(){//向右一页
+        if(flag) return;
+        flag = true;
+        clearInterval(timer);
+        if(index_all>cfg.page){
+            index_all = 1;
+            $("#slider").css('left','-1200px');
         }
+        action();
+        var width = -wid*(index_all+1);//-2400
+        $('#slider').animate({'left':width+'px'},()=>{
+            500;
+            flag = false;
+        })
+    }
+    function pre(){//向左一页
+        if(flag) return;
+        flag = true;
+        clearInterval(timer);     
+        console.log(index_all)
+        if(index_all<=0){
+            $("#slider").css('left',-wid*cfg.page+'px');
+            index_all=5
+            active(3)
+        }else{
+            active(index_all-2)
+        }
+        var width = -wid*(index_all-1);//-2400
+        $('#slider').animate({'left':width+'px'},()=>{
+            500;
+            flag = false;
+        })
     }
     return {
         show:show
